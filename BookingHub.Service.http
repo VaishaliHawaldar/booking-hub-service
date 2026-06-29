@@ -1,0 +1,16 @@
+@BookingHub.Service_HostAddress = http://localhost:5002
+
+# Replace with a real Auth0 access token forwarded from the frontend.
+@accessToken = PASTE_AUTH0_ACCESS_TOKEN_HERE
+
+GET {{BookingHub.Service_HostAddress}}/api/movies
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+###
+
+GET {{BookingHub.Service_HostAddress}}/api/movies/1
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+###
