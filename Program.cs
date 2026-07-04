@@ -1,12 +1,41 @@
+using BookingHub.Service.Repositories;
+using BookingHub.Service.Services;
+using BookingHub.Service.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MongoDB.Driver;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// ---------------------------------------------------------------------------
+// MongoDB wiring (Options pattern + layered data access).
+//
+//   Controller  ->  IMovieService  ->  IMovieRepository  ->  MongoDB driver
+//
+// Each layer depends on an abstraction, so any one can be swapped or tested in
+// isolation. Lifetimes below are deliberate (see comments).
+// ---------------------------------------------------------------------------
+
+// 1. Bind the "MongoDb" config section to a strongly-typed options object.
+builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDb"));
+
+// 2. Register the Mongo client as a SINGLETON. The driver's IMongoClient is
+//    thread-safe and owns a connection pool, so the whole app shares one.
+builder.Services.AddSingleton<IMongoClient>(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+    return new MongoClient(settings.ConnectionString);
+});
+
+// 3. Register the data + service layers as SCOPED (one instance per request).
+builder.Services.AddScoped<IMovieRepository, MovieRepository>();
+builder.Services.AddScoped<IMovieService, MovieService>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(options =>
 {
@@ -104,6 +133,9 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference(); // interactive API docs at /scalar/v1
     app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "BookingHub")); // Swagger UI at /swagger
+
+    // Populate the movies collection with sample data on first run.
+    await BookingHub.Service.Data.MovieSeeder.SeedAsync(app.Services);
 }
 
 app.UseHttpsRedirection();
