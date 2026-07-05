@@ -36,6 +36,8 @@ builder.Services.AddSingleton<IMongoClient>(sp =>
 // 3. Register the data + service layers as SCOPED (one instance per request).
 builder.Services.AddScoped<IMovieRepository, MovieRepository>();
 builder.Services.AddScoped<IMovieService, MovieService>();
+builder.Services.AddScoped<IShowtimeRepository, ShowtimeRepository>();
+builder.Services.AddScoped<IShowtimeService, ShowtimeService>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(options =>
 {
@@ -127,6 +129,10 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Every showtimes query filters by movieId, so back it with an index. Runs in all
+// environments (index creation is idempotent — an identical definition is a no-op).
+await BookingHub.Service.Data.ShowtimeSeeder.EnsureIndexesAsync(app.Services);
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -134,8 +140,10 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference(); // interactive API docs at /scalar/v1
     app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "BookingHub")); // Swagger UI at /swagger
 
-    // Populate the movies collection with sample data on first run.
+    // Populate the movies collection with sample data on first run, then attach
+    // sample showtimes to those movies.
     await BookingHub.Service.Data.MovieSeeder.SeedAsync(app.Services);
+    await BookingHub.Service.Data.ShowtimeSeeder.SeedAsync(app.Services);
 }
 
 app.UseHttpsRedirection();

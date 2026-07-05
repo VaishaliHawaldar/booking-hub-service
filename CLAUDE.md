@@ -22,7 +22,13 @@ Every layer depends on an **interface**, wired through the built-in DI container
 When adding a feature, follow the same seams — don't let MongoDB types or business
 rules leak into controllers.
 
-| Layer        | Folder           | Responsibility                                  |
+### Repository layout
+
+- `src/` — the app project (`BookingHub.Service.csproj`); all layer folders below live here.
+- `tests/BookingHub.Service.Tests/` — the xUnit test project (references `src/`).
+- `BookingHub.Service.sln` — solution tying both projects together.
+
+| Layer        | Folder (under `src/`) | Responsibility                             |
 |--------------|------------------|-------------------------------------------------|
 | Controller   | `Controllers/`   | HTTP only: map requests ↔ service, return status |
 | Service      | `Services/`      | Business rules; controllers depend on `I*Service` |
@@ -45,9 +51,10 @@ rules leak into controllers.
 ## Commands
 
 ```bash
-dotnet build                 # compile (keep it 0 warnings)
-dotnet run                   # run on http://localhost:5002 (Development)
-dotnet run --launch-profile https   # also https://localhost:7049
+dotnet build                 # compile the solution (keep it 0 warnings)
+dotnet test                  # run the xUnit suite in tests/
+dotnet run --project src     # run on http://localhost:5002 (Development)
+dotnet run --project src --launch-profile https   # also https://localhost:7049
 ```
 
 Requires a local MongoDB. Quick start:
@@ -57,7 +64,7 @@ docker run -d -p 27017:27017 --name mongo mongo:7
 
 ## Configuration (appsettings.json)
 
-- `MongoDb` — `ConnectionString`, `DatabaseName` (`bookinghub`), `MoviesCollectionName` (`movies`)
+- `MongoDb` — `ConnectionString`, `DatabaseName`, `MoviesCollectionName` (`movies`), `ShowtimesCollectionName` (`showtimes`)
 - `Auth0` — `Domain` (issuer URL), `Audience` (API identifier)
 - `Cors:AllowedOrigins` — defaults to `http://localhost:3000` (the frontend)
 
@@ -70,9 +77,15 @@ paste a real token into `BookingHub.Service.http` (`@accessToken`) or the Swagge
 ## Data seeding
 
 In **Development**, `Data/MovieSeeder` inserts 5 sample movies on startup if the
-`movies` collection is empty (idempotent). No manual import needed for local dev.
+`movies` collection is empty (idempotent), then `Data/ShowtimeSeeder` attaches
+sample showtimes to those movies. No manual import needed for local dev.
+
+`ShowtimeSeeder.EnsureIndexesAsync` also runs on **every** startup (all envs) to
+ensure an ascending index on `showtimes.movieId` — the field every showtimes query
+filters by. Index creation is idempotent.
 
 ## API
 
 - `GET /api/movies` — all movies
 - `GET /api/movies/{id}` — one movie by ObjectId string; 404 if not found
+- `GET /api/showtimes/{movieId}` — showtimes for a movie; `200 []` if none or if the id is malformed

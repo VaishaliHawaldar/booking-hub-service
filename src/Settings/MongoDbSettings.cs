@@ -15,4 +15,7 @@ public class MongoDbSettings
 
     /// <summary>Name of the collection that stores <see cref="Models.Movie"/> documents.</summary>
     public string MoviesCollectionName { get; set; } = "movies";
+
+    /// <summary>Name of the collection that stores <see cref="Models.Showtime"/> documents.</summary>
+    public string ShowtimesCollectionName { get; set; } = "showtimes";
 }
