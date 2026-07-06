@@ -63,13 +63,19 @@ public static class ShowtimeSeeder
         {
             showtimes.Add(new Showtime
             {
-                MovieId = movie.Id, Screen = "Screen 1",
-                StartTime = today.AddHours(14), BasePrice = 12.50m, TotalSeats = 120,
+                MovieId = movie.Id,
+                Screen = "Screen 1",
+                StartTime = today.AddHours(14),
+                BasePrice = 12.50m,
+                TotalSeats = 120,
             });
             showtimes.Add(new Showtime
             {
-                MovieId = movie.Id, Screen = "Screen 2",
-                StartTime = today.AddHours(19), BasePrice = 15.00m, TotalSeats = 80,
+                MovieId = movie.Id,
+                Screen = "Screen 2",
+                StartTime = today.AddHours(19),
+                BasePrice = 15.00m,
+                TotalSeats = 80,
             });
         }
 

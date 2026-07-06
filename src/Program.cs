@@ -30,6 +30,14 @@ builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("Mo
 builder.Services.AddSingleton<IMongoClient>(sp =>
 {
     var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+    if (string.IsNullOrWhiteSpace(settings.ConnectionString))
+    {
+        throw new InvalidOperationException(
+            "MongoDb:ConnectionString is not configured. Set it via user-secrets " +
+            "(dotnet user-secrets set \"MongoDb:ConnectionString\" \"<uri>\"), the " +
+            "MongoDb__ConnectionString environment variable, or appsettings.Development.json. " +
+            "For a local server: docker run -d -p 27017:27017 --name mongo mongo:7");
+    }
     return new MongoClient(settings.ConnectionString);
 });
 
@@ -93,21 +101,8 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        // Authority points at the Auth0 tenant; the middleware fetches the
-        // OIDC discovery document and JWKS (signing keys) from here.
-        options.Authority = auth0Domain;
+        options.Authority = NormalizeIssuer(auth0Domain);
         options.Audience = auth0Audience;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = NormalizeIssuer(auth0Domain),
-            ValidateAudience = true,
-            ValidAudience = auth0Audience,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            // Auth0 puts the subject in the standard "sub" claim.
-            NameClaimType = "sub",
-        };
     });
 
 builder.Services.AddAuthorization();

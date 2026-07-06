@@ -1,4 +1,4 @@
-using BookingHub.Service.Models;
+using BookingHub.Service.Dtos;
 using BookingHub.Service.Repositories;
 
 namespace BookingHub.Service.Services;
@@ -9,6 +9,9 @@ public class ShowtimeService : IShowtimeService
 
     public ShowtimeService(IShowtimeRepository repository) => _repository = repository;
 
-    public Task<IReadOnlyList<Showtime>> GetByMovieIdAsync(string movieId, CancellationToken cancellationToken = default) =>
-        _repository.GetByMovieIdAsync(movieId, cancellationToken);
+    public async Task<IReadOnlyList<ShowtimeResponse>> GetByMovieIdAsync(string movieId, CancellationToken cancellationToken = default)
+    {
+        var showtimes = await _repository.GetByMovieIdAsync(movieId, cancellationToken);
+        return showtimes.Select(s => s.ToResponse()).ToList();
+    }
 }

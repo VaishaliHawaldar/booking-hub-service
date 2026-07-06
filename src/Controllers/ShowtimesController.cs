@@ -1,4 +1,4 @@
-using BookingHub.Service.Models;
+using BookingHub.Service.Dtos;
 using BookingHub.Service.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +14,7 @@ public class ShowtimesController(IShowtimeService showtimeService) : ControllerB
 
     /// <summary>Returns the showtimes for a given movie (empty list if none or if the id is malformed).</summary>
     [HttpGet("{movieId}")]
-    public async Task<ActionResult<IReadOnlyList<Showtime>>> GetByMovieId(string movieId, CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<ShowtimeResponse>>> GetByMovieId(string movieId, CancellationToken cancellationToken)
     {
         var showtimes = await _showtimeService.GetByMovieIdAsync(movieId, cancellationToken);
         return Ok(showtimes);

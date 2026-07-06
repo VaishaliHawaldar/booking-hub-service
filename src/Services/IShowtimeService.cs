@@ -1,8 +1,8 @@
-using BookingHub.Service.Models;
+using BookingHub.Service.Dtos;
 
 namespace BookingHub.Service.Services;
 
 public interface IShowtimeService
 {
-    Task<IReadOnlyList<Showtime>> GetByMovieIdAsync(string movieId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ShowtimeResponse>> GetByMovieIdAsync(string movieId, CancellationToken cancellationToken = default);
 }
