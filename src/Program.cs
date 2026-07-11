@@ -1,3 +1,4 @@
+using BookingHub.Service.Middleware;
 using BookingHub.Service.Repositories;
 using BookingHub.Service.Services;
 using BookingHub.Service.Settings;
@@ -142,6 +143,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRequestDuration();
 
 app.UseCors(FrontendCors);
 
