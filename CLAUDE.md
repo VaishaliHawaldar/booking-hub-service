@@ -53,7 +53,7 @@ rules leak into controllers.
 ```bash
 dotnet build                 # compile the solution (keep it 0 warnings)
 dotnet test                  # run the xUnit suite in tests/
-dotnet run --project src     # run on http://localhost:5002 (Development)
+dotnet run --project src     # run on http://localhost:5210 (Development)
 dotnet run --project src --launch-profile https   # also https://localhost:7049
 ```
 
